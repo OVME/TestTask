@@ -6,7 +6,7 @@ namespace TestWebApi.Models
     public class CalculateNextNumberRequestModel
     {
         [Required]
-        public Guid CalculationGuid { get; set; }
+        public Guid CalculationId { get; set; }
 
         [Required]
         [Range(1, int.MaxValue)]
