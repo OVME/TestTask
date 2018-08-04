@@ -8,15 +8,15 @@ namespace TestWebApi.Controllers
     [RoutePrefix("fibonacciCalculation")]
     public class FibonacciCalculationController : ApiController
     {
-        [Route("calculateNextNumber")]
-        public void CalculateNextNumber(CalculateNextNumberRequestModel model)
+        [Route("{calculationId}/calculateNextNumber")]
+        public void CalculateNextNumber(CalculateNextNumberRequestModel model, [FromUri] Guid calculationId)
         {
+            // ReSharper disable once PossibleInvalidOperationException
             var currentNumber = model.CurrentNumber;
             int nextNumber;
 
             var tempDirectory = Path.GetTempPath();
-            var calculationId = model.CalculationId;
-            var tempFilePath = Path.Combine(tempDirectory, "web_api_" + calculationId.ToString());
+            var tempFilePath = Path.Combine(tempDirectory, "web_api_" + calculationId);
 
             if (currentNumber == 1)
             {

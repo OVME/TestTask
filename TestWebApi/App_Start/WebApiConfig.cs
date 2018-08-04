@@ -1,4 +1,5 @@
 ﻿using System.Web.Http;
+using TestWebApi.Infrastructure.ActionFiltering;
 
 namespace TestWebApi
 {
@@ -8,6 +9,9 @@ namespace TestWebApi
         {
             // Web API routes
             config.MapHttpAttributeRoutes();
+
+            // Adding filters
+            config.Filters.Add(new ValidateModelStateAttribute());
         }
     }
 }

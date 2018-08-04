@@ -172,7 +172,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Controllers\FibonacciController.cs" />
+    <Compile Include="Controllers\FibonacciCalculationController.cs" />
+    <Compile Include="Infrastructure\ActionFiltering\ValidateModelStateAttribute.cs" />
     <Compile Include="Models\CalculateNextNumberRequestModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
