@@ -14,7 +14,7 @@ namespace TestConsole
             var apiUrl = ConfigurationManager.AppSettings["apiUrl"];
             var rabbitMqConnectionString = ConfigurationManager.AppSettings["rabbitMqConnectionString"];
 
-            Console.WriteLine("threadId" + Thread.CurrentThread.ManagedThreadId + "initializes calculations");
+            Console.WriteLine("threadId " + Thread.CurrentThread.ManagedThreadId + "initializes calculations");
 
             Console.WriteLine("Press enter to stop calculations");
 

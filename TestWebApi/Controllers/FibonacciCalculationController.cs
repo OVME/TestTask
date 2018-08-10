@@ -11,38 +11,46 @@ namespace TestWebApi.Controllers
     public class FibonacciCalculationController : ApiController
     {
         private const long PredefinedCalculationEndValue = -1;
+        private const long FirstFibonacciNumber = 0;
+
+        [HttpPost]
+        [Route("")]
+        public InitCalculationResponseModel InitCalculation()
+        {
+            var newId = Guid.NewGuid();
+            var tempFilePath = GetFilePathByCalculationId(newId);
+
+            WriteNumberToFile(tempFilePath, FirstFibonacciNumber);
+
+            return new InitCalculationResponseModel
+            {
+                CalculationId = newId
+            };
+        }
 
         [HttpPost]
         [Route("{calculationId}/calculateNextNumber")]
         public void CalculateNextNumber(CalculateNextNumberRequestModel model, [FromUri] Guid calculationId)
         {
-            // ReSharper disable once PossibleInvalidOperationException
             var currentNumber = model.CurrentNumber;
 
             var tempFilePath = GetFilePathByCalculationId(calculationId);
 
+            var previousNumber = GetPreviousNumberFromFile(tempFilePath);
+
             long nextNumber;
-            if (currentNumber == 1)
+            try
             {
-                nextNumber = 1;
+                nextNumber = checked(previousNumber + currentNumber);
             }
-            else
+            catch (OverflowException)
             {
-                var previousNumber = GetPreviousNumberFromFile(tempFilePath);
+                SendResultToQueue(PredefinedCalculationEndValue, calculationId);
 
-                try
-                {
-                    nextNumber = checked(previousNumber + currentNumber);
-                }
-                catch (OverflowException)
-                {
-                    SendResultToQueue(PredefinedCalculationEndValue, calculationId);
-
-                    return;
-                }
+                return;
             }
 
-            WriteNextNumberToFile(tempFilePath, nextNumber);
+            WriteNumberToFile(tempFilePath, nextNumber);
 
             SendResultToQueue(nextNumber, calculationId);
         }
@@ -54,9 +62,9 @@ namespace TestWebApi.Controllers
             return tempFilePath;
         }
 
-        private void WriteNextNumberToFile(string tempFilePath, long nextNumber)
+        private void WriteNumberToFile(string tempFilePath, long number)
         {
-            File.WriteAllText(tempFilePath, nextNumber.ToString());
+            File.WriteAllText(tempFilePath, number.ToString());
         }
 
         private long GetPreviousNumberFromFile(string tempFilePath)

@@ -1,12 +1,7 @@
 ﻿using System;
-using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading;
 using EasyNetQ;
-using Newtonsoft.Json;
 using Test.Common.Models;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace TestConsole
 {
@@ -28,7 +23,7 @@ namespace TestConsole
 
         public void StartCalculation()
         {
-            var calculationId = Guid.NewGuid();
+            var calculationId = InitializeDistributedCalculation();
             var exchange = _bus.ExchangeDeclare("fibonacciExchange", "direct", durable: true, autoDelete: true);
 
             var queue = _bus.QueueDeclare();
@@ -77,37 +72,25 @@ namespace TestConsole
             SendNumber(newFibonacciNumber, calculationId);
         }
 
-        private void SendNumber(long number, Guid calculationId)
+        private Guid InitializeDistributedCalculation()
         {
-            var path = $"fibonacciCalculation/{calculationId}/calculateNextNumber";
-
-            var message = GetMessage(number, path);
-
-            using (var apiClient = new HttpClient())
+            using (var apiClient = new ApiClient(_apiUrl))
             {
-                apiClient.BaseAddress = new Uri(_apiUrl);
-                apiClient.SendAsync(message).Wait();
+                return apiClient.InitCalculation().GetAwaiter().GetResult().CalculationId;
             }
         }
 
-        private HttpRequestMessage GetMessage(long number, string path)
+        private void SendNumber(long number, Guid calculationId)
         {
-            var model = new CalculateNextNumberRequestModel
+            using (var apiClient = new ApiClient(_apiUrl))
             {
-                CurrentNumber = number
-            };
+                var requestModel = new  CalculateNextNumberRequestModel
+                {
+                    CurrentNumber = number
+                };
 
-            var message = new HttpRequestMessage(HttpMethod.Post, path);
-            var serializer = JsonSerializer.Create();
-            var stringWriter = new StringWriter();
-            using (var textWriter = new JsonTextWriter(stringWriter))
-            {
-                serializer.Serialize(textWriter, model);
-                message.Content = new StringContent(stringWriter.ToString());
-                message.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                apiClient.CalculateNextNumber(requestModel, calculationId).Wait();
             }
-
-            return message;
         }
     }
 }
