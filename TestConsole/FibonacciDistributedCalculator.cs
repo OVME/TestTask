@@ -13,6 +13,7 @@ namespace TestConsole
     internal class FibonacciDistributedCalculator
     {
         private const long InitialFibonacciNumber = 1;
+        private const long PredefinedCalculationEndValue = -1;
 
         private long _previousFibonacciNumber = InitialFibonacciNumber;
 
@@ -48,9 +49,14 @@ namespace TestConsole
         {
             var receivedFibonacciNumber = BitConverter.ToInt64(bytes, 0);
 
-            var identificatioString = "calculationId:" + calculationId + "| threadId: " +
-                                      Thread.CurrentThread.ManagedThreadId + "| ";
+            var identificatioString = $"calculationId: {calculationId} | threadId: {Thread.CurrentThread.ManagedThreadId} | ";
 
+            if (receivedFibonacciNumber == PredefinedCalculationEndValue)
+            {
+                Console.WriteLine(identificatioString + "calculation was ended by WebAPI");
+                return;
+            }
+            
             Console.WriteLine(identificatioString + "received " + receivedFibonacciNumber);
 
             long newFibonacciNumber;
@@ -61,14 +67,14 @@ namespace TestConsole
             catch (OverflowException)
             {
                 Console.WriteLine(identificatioString + "ended calculation because of overflow");
-                throw;
+                return;
             }
 
             Console.WriteLine(identificatioString + "calculated " + newFibonacciNumber);
 
-            SendNumber(newFibonacciNumber, calculationId);
-
             _previousFibonacciNumber = newFibonacciNumber;
+
+            SendNumber(newFibonacciNumber, calculationId);
         }
 
         private void SendNumber(long number, Guid calculationId)

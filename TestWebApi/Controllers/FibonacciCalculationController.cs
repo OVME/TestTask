@@ -10,6 +10,8 @@ namespace TestWebApi.Controllers
     [RoutePrefix("fibonacciCalculation")]
     public class FibonacciCalculationController : ApiController
     {
+        private const long PredefinedCalculationEndValue = -1;
+
         [HttpPost]
         [Route("{calculationId}/calculateNextNumber")]
         public void CalculateNextNumber(CalculateNextNumberRequestModel model, [FromUri] Guid calculationId)
@@ -22,13 +24,22 @@ namespace TestWebApi.Controllers
             long nextNumber;
             if (currentNumber == 1)
             {
-                nextNumber = 2;
+                nextNumber = 1;
             }
             else
             {
                 var previousNumber = GetPreviousNumberFromFile(tempFilePath);
 
-                nextNumber = checked(previousNumber + currentNumber);
+                try
+                {
+                    nextNumber = checked(previousNumber + currentNumber);
+                }
+                catch (OverflowException)
+                {
+                    SendResultToQueue(PredefinedCalculationEndValue, calculationId);
+
+                    return;
+                }
             }
 
             WriteNextNumberToFile(tempFilePath, nextNumber);
