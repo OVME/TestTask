@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
+using System.Net;
 using System.Web.Http;
 using EasyNetQ;
 using Test.Common.Models;
@@ -59,6 +60,7 @@ namespace TestWebApi.Controllers
         {
             var tempDirectory = Path.GetTempPath();
             var tempFilePath = Path.Combine(tempDirectory, "web_api_" + calculationId);
+
             return tempFilePath;
         }
 
@@ -69,6 +71,11 @@ namespace TestWebApi.Controllers
 
         private long GetPreviousNumberFromFile(string tempFilePath)
         {
+            if (!File.Exists(tempFilePath))
+            {
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+            }
+
             long previousNumber;
             var previousNumberString = File.ReadAllText(tempFilePath);
 
